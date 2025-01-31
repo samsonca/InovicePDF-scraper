@@ -1,0 +1,26 @@
+# Ignore Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore credentials and config files
+config/settings.py
+.env
+
+# Ignore virtual environment
+venv/
+.env/
+
+# Ignore logs
+logs/
+*.log
+
+# Ignore Jupyter Notebook checkpoints
+notebooks/.ipynb_checkpoints/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore generated Excel files
+data/*.xlsx

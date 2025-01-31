@@ -1,0 +1,14 @@
+# Core dependencies
+pdfplumber==0.9.0
+pandas==2.0.3
+pyodbc==5.0.1
+Office365-REST-Python-Client==2.5.0
+
+# File system monitoring (if needed)
+watchdog==3.0.0  
+
+# Task scheduling (optional)
+schedule==1.2.0
+
+# Logging & Debugging
+loguru==0.6.0
