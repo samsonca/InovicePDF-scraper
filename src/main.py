@@ -1,17 +1,20 @@
-from src.extraction.sharepoint_reader import get_pdf_files
-from src.extraction.pdf_parser import extract_invoice_data
-from src.database.azure_db import insert_invoice_data
+import sys
+import os
+project_root = os.path.abspath(os.path.join(os.getcwd(), "..")) 
 
-def process_invoices():
-    """Full process: Fetch PDFs, extract data, save to Azure SQL."""
-    pdf_files = get_pdf_files()
-    
-    for filename, pdf_stream in pdf_files:
-        print(f"Processing {filename}...")
-        invoice_data = extract_invoice_data(pdf_stream)
-        insert_invoice_data(invoice_data)
-    
-    print("All invoices processed successfully!")
+# Add `src` folder to Python's module search path
+sys.path.append(os.path.join(project_root, "src"))
+
+from extraction.pdf_parser import extract_invoice_data
+from database.excel_writer import save_to_excel
+
+def process_invoice():
+    """Extract invoice data from PDF and save it to Excel."""
+    pdf_path = r"C:\Users\SamsonC\Documents\Accounting\Accounting_AR\invoice_pdf\8713.pdf"
+    invoice_data = extract_invoice_data(pdf_path)
+
+    save_to_excel(invoice_data, "invoices.xlsx")
+    print("✅ Invoice data processed and saved to Excel!")
 
 if __name__ == "__main__":
-    process_invoices()
+    process_invoice()
