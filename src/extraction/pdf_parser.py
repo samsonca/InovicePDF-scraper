@@ -18,29 +18,58 @@ def extract_invoice_data(pdf_path):
     client_name = client_match.group(1).strip() if client_match else "Client not found"
 
     # Extract Address Details (Unit, City, Province, Postal Code)
-    extracted_address, unit, city, province, postal_code = "N/A", "N/A", "N/A", "N/A", "N/A"
+    extracted_address, unit, building,city, province, postal_code = "N/A", "N/A", "N/A", "N/A", "N/A", "N/A"
 
     for i, line in enumerate(lines):
-        if client_name in line and i + 1 < len(lines):
-            next_line = lines[i + 1].strip()
-            if re.match(r"^\d{1,5}\s[\w\s]+[,\s]*$", next_line):  # Address validation
-                extracted_address = next_line
-                break
+        if "Client:" in line:
+            if i + 1 < len(lines):
+                next_line = lines[i + 1].strip()
+                # Take only street address before the comma
+                extracted_address = next_line.split(',')[0].strip()
+            break
+    # print(f"Addres: {extracted_address if extracted_address else 'No address found'}")
 
     # Extract Unit
-    unit_match = re.search(r"^\s*Unit\s*\d+", text, re.MULTILINE)           # Strictly match unit lines
+    unit_match = re.search(r"(?i)(?:Unit|Suite)\s*\d+", text, re.MULTILINE)
     if unit_match:
         unit = unit_match.group(0).strip()
 
+    # Extract Building
+    building_match = re.search(r"(?i)(?:Bldg\.?|Building)\s*[A-Za-z0-9]+", text)
+    if building_match:
+        building = building_match.group(0).strip()
+        # print("Building:", building_field)
+    # else:
+    #     print("Building not found.")
+
     # Extract City
-    city_match = re.search(r"(?m)^\s*[A-Za-z\s]+(?=, ON)", text)
+    city_match = re.search(r"(?m)^\s*[A-Za-z\s]+(?=,\s*[Oo][Nn])", text)
     if city_match:
         city = city_match.group(0)
+    else:
+        # print("City not matched.")
+        if not re.search(r"(?m)^[A-Za-z\s]+(?=, ON)", text):
+            for line in lines:
+                # Check if the line contains a postal code pattern (Canadian format) and "Canada"
+                if re.search(r"[A-Z]\d[A-Z]\s*\d[A-Z]\d", line) and "Canada" in line:
+                    parts = line.split(',')
+                    if len(parts) >= 2:
+                        city_test = parts[0].strip()
+                    break
+                    
 
     # Extract Province
-    province_match = re.search(r"[A-Z]{2}", text)
+    province_match = re.search(r"(?i)[A-Za-z]{2}", text)
     if province_match:
-        province = province_match.group(0)
+        if province_match.group(0).upper() == "HS":
+            if re.search(r"[A-Z]\d[A-Z]\s*\d[A-Z]\d", line) and "Canada" in line:
+                parts = line.split(',')
+                if len(parts) >= 2:
+                    province_tokens = parts[1].strip().split()
+                    if province_tokens:
+                        province = province_tokens[0].strip()
+        else:
+            province = province_match.group(0)
 
     # Extract Postal Code
     postal_match = re.search(r"[A-Z]\d[A-Z]\s*\d[A-Z]\d", text)
@@ -52,7 +81,7 @@ def extract_invoice_data(pdf_path):
 
     # Extract Agreement No & Client from Header
     agreement_number, client_project = "N/A", "N/A"
-    header_match = re.search(r'Re: #([A-Z0-9]+) - ([A-Za-z\s]+)\s*(Qty\s+Rate\s+Price)', text)
+    header_match = re.search(r'(?:Re:\s*)?#([A-Z0-9-]+)\s*-\s*([A-Za-z\s]+)\s*(Qty\s+Rate\s+Price)', text)
     if header_match:
         agreement_number = header_match.group(1).strip()
         client_project = header_match.group(2).strip()
@@ -114,6 +143,7 @@ def extract_invoice_data(pdf_path):
         "client_name": client_name,
         "address": extracted_address if extracted_address else "No address found",
         "unit": unit,
+        "building": building,
         "city": city,
         "province": province,
         "postal_code": postal_code,
