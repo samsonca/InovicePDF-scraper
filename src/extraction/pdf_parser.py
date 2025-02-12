@@ -18,7 +18,7 @@ def extract_invoice_data(pdf_path):
     client_name = client_match.group(1).strip() if client_match else "Client not found"
 
     # Extract Address Details (Unit, City, Province, Postal Code)
-    extracted_address, unit, building,city, province, postal_code = "N/A", "N/A", "N/A", "N/A", "N/A", "N/A"
+    extracted_address, unit, building, city, province, postal_code = "N/A", "N/A", "N/A", "N/A", "N/A", "N/A"
 
     for i, line in enumerate(lines):
         if "Client:" in line:
@@ -54,22 +54,39 @@ def extract_invoice_data(pdf_path):
                 if re.search(r"[A-Z]\d[A-Z]\s*\d[A-Z]\d", line) and "Canada" in line:
                     parts = line.split(',')
                     if len(parts) >= 2:
-                        city_test = parts[0].strip()
+                        city = parts[0].strip()
                     break
                     
 
     # Extract Province
-    province_match = re.search(r"(?i)[A-Za-z]{2}", text)
+    province_match = re.search(
+    r",\s*([A-Za-z]+(?:\s+[A-Za-z]+)*)(?=\s+(?:Canada|[A-Z]\d[A-Z]\s*\d[A-Z]\d|Agreement No:)|\s*$)",
+    text,
+    re.IGNORECASE
+    )
     if province_match:
-        if province_match.group(0).upper() == "HS":
-            if re.search(r"[A-Z]\d[A-Z]\s*\d[A-Z]\d", line) and "Canada" in line:
-                parts = line.split(',')
-                if len(parts) >= 2:
-                    province_tokens = parts[1].strip().split()
-                    if province_tokens:
-                        province = province_tokens[0].strip()
+        province_extracted = province_match.group(1).strip()
+        # normalize the extracted province to uppercase for comparison.
+        province_extracted_upper = province_extracted.upper()
+        
+        if province_extracted_upper == "ONTARIO" or province_extracted_upper == "ONTARIO CANADA":
+            province = "ON"
         else:
-            province = province_match.group(0)
+            province = province_extracted_upper
+
+        # print("Province:", province)
+
+    # province_match = re.search(r"(?i)[A-Za-z]{2}", text)
+    # if province_match:
+    #     if province_match.group(0).upper() == "HS":
+    #         if re.search(r"[A-Z]\d[A-Z]\s*\d[A-Z]\d", line) and "Canada" in line:
+    #             parts = line.split(',')
+    #             if len(parts) >= 2:
+    #                 province_tokens = parts[1].strip().split()
+    #                 if province_tokens:
+    #                     province = province_tokens[0].strip()
+    #     else:
+    #         province = province_match.group(0)
 
     # Extract Postal Code
     postal_match = re.search(r"[A-Z]\d[A-Z]\s*\d[A-Z]\d", text)
@@ -81,7 +98,10 @@ def extract_invoice_data(pdf_path):
 
     # Extract Agreement No & Client from Header
     agreement_number, client_project = "N/A", "N/A"
-    header_match = re.search(r'(?:Re:\s*)?#([A-Z0-9-]+)\s*-\s*([A-Za-z\s]+)\s*(Qty\s+Rate\s+Price)', text)
+    header_match = re.search(
+        r'(?:Re:\s*)?#([A-Z0-9-]+)\s*-\s*([A-Za-z0-9\s-]+?)(?=\s+Qty\s+Rate\s+Price|\s*$)',
+        text
+    )
     if header_match:
         agreement_number = header_match.group(1).strip()
         client_project = header_match.group(2).strip()
