@@ -21,13 +21,17 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         if not pdf_base64:
             return func.HttpResponse("No file content provided", status_code=400)
 
+        # Decode base64 to bytes
         pdf_bytes = base64.b64decode(pdf_base64)
+        # Write to a temporary file so pdf_parser can read it
         with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_file:
             tmp_file.write(pdf_bytes)
             tmp_file_path = tmp_file.name
 
+        # Process the PDF to extract invoice data
         invoice_data = extract_invoice_data(tmp_file_path)
 
+        # Return the extracted data as JSON
         return func.HttpResponse(
             json.dumps(invoice_data),
             status_code=200,
