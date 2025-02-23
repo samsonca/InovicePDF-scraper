@@ -14,10 +14,13 @@ def transform_extracted_data(extracted):
 
     # Map fields for AR_Invoices
     invoice_data = {
-        "InvoiceNumber": extracted.get("invoice_number"),
-        "Date": extracted.get("date"),
-        "AgreementNumber": extracted.get("agreement_number"),
-        "Project": extracted.get("client_project")
+        "InvoiceNumber": extracted.get("invoice_number"),  
+        "ProjectNumber": extracted.get("agreement_number"), 
+        "InvoiceDate": extracted.get("date"),
+        "Terms": extracted.get("term", "Net 30"),  
+        "TotalAmount": round(sum(float(item[3]) for item in extracted.get("items", [])), 2),
+        "Project": extracted.get("client_project"),
+        "Status": "Pending"  # Default Status
     }
 
     # Map line items for AR_Invoice_Items
