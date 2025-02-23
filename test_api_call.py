@@ -3,6 +3,8 @@ import json
 import requests
 import sys
 import os
+import pyodbc
+
 
 # Ensure the src folder is on the Python path
 project_root = os.path.abspath(os.path.join(os.getcwd()))
@@ -66,3 +68,107 @@ print("\nInvoice Data:")
 print(json.dumps(invoice_data, indent=2))
 print("\nInvoice Items:")
 print(json.dumps(invoice_items, indent=2))
+
+
+# Azure Database connection
+try:
+    conn = pyodbc.connect(
+        "DRIVER={ODBC Driver 18 for SQL Server};"
+        "SERVER=tpgazsqlcadvault.database.windows.net;"
+        "DATABASE=timesheet;"
+        "UID=CADVaultAdmin;"
+        "PWD=y2RF2*Yk5\\;"
+        "Encrypt=yes;TrustServerCertificate=no;"
+    )
+    print("✅ Connection Successful!")
+except Exception as e:
+    print("❌ Connection Failed:", e)
+
+# Azure SQL Database connection settings
+# server = 'tpgazsqlcadvault.database.windows.net'
+# database = 'timesheet'
+# username = 'CADVaultAdmin'
+# password =  'y2RF2*Yk5\\'
+# driver = '{ODBC Driver 18 for SQL Server}'
+
+# connection_string = (
+#     f"DRIVER={driver};"
+#     f"SERVER={server};"
+#     f"DATABASE={database};"
+#     f"UID={username};"
+#     f"PWD={password}"
+#     "Encrypt=yes;TrustServerCertificate=no;"
+
+# )
+
+# # Connect to Azure SQL Database
+# conn = pyodbc.connect(connection_string)
+cursor = conn.cursor()
+
+def insert_client(client_data):
+    # Check if client exists
+    select_query = "SELECT ClientId FROM AR_Clients WHERE Name = ? AND Address = ?"
+    cursor.execute(select_query, (client_data["Name"], client_data["Address"]))
+    row = cursor.fetchone()
+    if row:
+        return row[0]
+    else:
+        insert_query = """
+            INSERT INTO AR_Clients (Name, Address, City, Province, Postal)
+            OUTPUT INSERTED.ClientId
+            VALUES (?, ?, ?, ?, ?)
+        """
+        cursor.execute(insert_query, (
+            client_data["Name"],
+            client_data["Address"],
+            client_data["City"],
+            client_data["Province"],
+            client_data["Postal"]
+        ))
+        return cursor.fetchone()[0]
+
+def insert_invoice(invoice_data, client_id):
+    insert_query = """
+        INSERT INTO AR_Invoices (ClientId, InvoiceNumber, Date, AgreementNumber, Project)
+        OUTPUT INSERTED.InvoiceId
+        VALUES (?, ?, ?, ?, ?)
+    """
+    cursor.execute(insert_query, (
+        client_id,
+        invoice_data["InvoiceNumber"],
+        invoice_data["Date"],
+        invoice_data["AgreementNumber"],
+        invoice_data["Project"]
+    ))
+    return cursor.fetchone()[0]
+
+def insert_invoice_items(invoice_items, invoice_id):
+    insert_query = """
+        INSERT INTO AR_Invoice_Items (InvoiceId, Description, Quantity, Rate, Amount)
+        VALUES (?, ?, ?, ?, ?)
+    """
+    for item in invoice_items:
+        cursor.execute(insert_query, (
+            invoice_id,
+            item["Description"],
+            item["Quantity"],
+            item["Rate"],
+            item["Amount"]
+        ))
+
+try:
+    # Insert or retrieve the client record
+    client_id = insert_client(client_data)
+    # Insert the invoice record
+    invoice_id = insert_invoice(invoice_data, client_id)
+    # Insert all invoice items for the invoice
+    insert_invoice_items(invoice_items, invoice_id)
+    
+    conn.commit()
+    print("Data inserted successfully!")
+except Exception as e:
+    conn.rollback()
+    print("Error inserting data:", e)
+finally:
+    cursor.close()
+    conn.close()
