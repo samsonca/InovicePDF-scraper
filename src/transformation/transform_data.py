@@ -1,6 +1,8 @@
+from database.database_operations import format_invoice_date
+
 def transform_extracted_data(extracted):
     """
-    Map the raw extracted JSON to a format that matches your database schema.
+    Maps raw extracted JSON to a format that matches your database schema.
     Returns dictionaries for clients, invoices, and invoice items.
     """
     # Map fields for AR_Clients
@@ -12,21 +14,30 @@ def transform_extracted_data(extracted):
         "Postal": extracted.get("postal_code")
     }
 
-    # Map fields for AR_Invoices
+    # Use the shared function to process and format InvoiceDate.
+    invoice_date = format_invoice_date(extracted.get("date"))
+
+    # Process TotalAmount by cleaning each numeric string in items.
+    total_amount = 0.0
+    for item in extracted.get("items", []):
+        try:
+            cleaned = item[3].replace(',', '').replace('$', '').replace('%', '').strip()
+            total_amount += float(cleaned)
+        except Exception:
+            continue
+
     invoice_data = {
-        "InvoiceNumber": extracted.get("invoice_number"),  
-        "ProjectNumber": extracted.get("agreement_number"), 
-        "InvoiceDate": extracted.get("date"),
-        "Terms": extracted.get("term", "Net 30"),  
-        "TotalAmount": round(sum(float(item[3]) for item in extracted.get("items", [])), 2),
+        "InvoiceNumber": extracted.get("invoice_number"),
+        "ProjectNumber": extracted.get("agreement_number"),
+        "InvoiceDate": invoice_date,
+        "Terms": extracted.get("term", "Net 30"),
+        "TotalAmount": total_amount,
         "Project": extracted.get("client_project"),
-        "Status": "Pending"  # Default Status
+        "Status": "Pending"
     }
 
-    # Map line items for AR_Invoice_Items
     invoice_items = []
     for item in extracted.get("items", []):
-        # Assuming item format: [Description, Qty, Rate, Amount]
         invoice_items.append({
             "Description": item[0],
             "Quantity": item[1],
