@@ -24,3 +24,5 @@ Thumbs.db
 
 # Ignore generated Excel files
 data/*.xlsx
+
+.python_packages

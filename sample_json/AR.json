@@ -1,0 +1,47 @@
+{
+  "company": {
+    "company_id": 3,
+    "company_name": "SaleFish",
+    "company_code": "salefish",
+    "image_url": "https://pic.salefishsoftware.net/builder_images/1/logo.png",
+    "company_host": "salefish"
+  },
+  "client": {
+    "client_id": 57,
+    "name": "Mapleview Developments Ltd.",
+    "address": "30 Wertheim Court, Unit 3, Bldg. A",
+    "city": "Richmond Hill",
+    "province": "Ontario",
+    "postal_code": "L4B 1B9",
+    "phone": null,
+    "email": null
+  },
+  "invoice": {
+    "invoice_id": 49,
+    "invoice_number": "4732",
+    "client_id": 57,
+    "project_no": "A0178",
+    "invoice_date": "2020-12-31",
+    "terms": "Net 30",
+    "total_amount": 452.00,
+    "status": "Pending",
+    "company_code": "salefish"
+  },
+  "invoice_items": [
+    {
+      "invoice_id": 49,
+      "description": "To bill for Hosting and Upgrades as per section 3 of the contract: December, 2020",
+      "quantity": 1,
+      "rate": 400.00,
+      "amount": 400.00
+    },
+    {
+      "invoice_id": 49,
+      "description": "HST On Sales 13%",
+      "quantity": 0,
+      "rate": 0,
+      "amount": 52.00
+    }
+  ],
+  "payments": []
+}

@@ -26,11 +26,11 @@ import time
 project_root = os.path.abspath(os.path.join(os.getcwd(), ".."))
 sys.path.append(os.path.join(project_root, "src"))
 
-from extraction.pdf_parser import extract_invoice_data
+from extraction.RN_Scraper import extract_rn_invoice_data
 from database.excel_writer import save_to_excel  # Optional, for validation before SQL
 
 # Folder containing PDF invoices
-INVOICE_FOLDER = r"C:\Users\SamsonC\Documents\Accounting\Accounting_AR\Selfish\Misc"
+INVOICE_FOLDER = r"C:\Users\SamsonC\Documents\Accounting\Accounting_AR\RN"
 
 def process_invoices():
     """Extract data from multiple PDFs in a folder and log processing times."""
@@ -45,10 +45,10 @@ def process_invoices():
             print(f"📄 Processing: {filename}")
 
             # Extract data
-            invoice_data = extract_invoice_data(pdf_path)
+            invoice_data = extract_rn_invoice_data(pdf_path)
             
             # Save to Excel (optional, for validation before SQL)
-            save_to_excel(invoice_data, "invoices.xlsx")
+            save_to_excel(invoice_data, "rn_invoices.xlsx")
             file_end = time.time()
             
             print(f"✅ Extracted data from {filename} and saved to Excel in {file_end - file_start:.2f} seconds")

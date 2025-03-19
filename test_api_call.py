@@ -5,7 +5,11 @@ import sys
 import os
 import pyodbc
 import time
-import psutil  # New: To track memory usage
+import psutil 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 # Ensure the src folder is on the Python path
 project_root = os.path.abspath(os.path.join(os.getcwd()))
@@ -17,9 +21,24 @@ from database.database_operations import get_database_connection, insert_client,
 
 
 # API and Config
-url = "http://localhost:7072/api/InvoiceExtractor"
+# url = "http://localhost:7072/api/InvoiceExtractor"
+API_URL = os.getenv("INVOICE_EXTRACTOR_URL")
+
+if not API_URL:
+    raise Exception("INVOICE_EXTRACTOR_URL is not set in the environment variables")
+
 headers = {"Content-Type": "application/json"}
 INVOICE_FOLDER = r"C:\Users\SamsonC\Documents\Accounting\Accounting_AR\Selfish\Misc"
+
+payload = {"InvoiceDataExtractor": "TestUser"}
+
+response = requests.post(API_URL, data=json.dumps(payload), headers=headers)
+
+if response.status_code == 200:
+    print("✅ Successfully received response:")
+    print(response.text)
+else:
+    print(f"❌ API Request Failed: {response.status_code}, {response.text}")
 
 # Azure SQL Database connection settings
 connection_string = (
