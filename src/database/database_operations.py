@@ -1,21 +1,21 @@
-import pyodbc
+# import pyodbc
 from datetime import datetime
 
 # Database Connection Setup
-def get_database_connection():
-    try:
-        conn = pyodbc.connect(
-            "DRIVER={ODBC Driver 18 for SQL Server};"
-            "SERVER=tpgazsqlcadvault.database.windows.net;"
-            "DATABASE=timesheet;"
-            "UID=CADVaultAdmin;"
-            "PWD=y2RF2*Yk5\\;"
-            "Encrypt=yes;TrustServerCertificate=no;"
-        )
-        return conn
-    except Exception as e:
-        print("❌ Database Connection Failed:", e)
-        return None
+# def get_database_connection():
+#     try:
+#         conn = pyodbc.connect(
+#             "DRIVER={ODBC Driver 18 for SQL Server};"
+#             "SERVER=tpgazsqlcadvault.database.windows.net;"
+#             "DATABASE=timesheet;"
+#             "UID=CADVaultAdmin;"
+#             "PWD=y2RF2*Yk5\\;"
+#             "Encrypt=yes;TrustServerCertificate=no;"
+#         )
+#         return conn
+#     except Exception as e:
+#         print("❌ Database Connection Failed:", e)
+#         return None
 
 # Insert Client
 def insert_client(cursor, client_data):
